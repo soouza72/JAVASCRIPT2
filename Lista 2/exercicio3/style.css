@@ -1,0 +1,23 @@
+
+img{
+border-radius: 1000px;
+max-width: 100%;
+height: auto;
+align-items: center;
+justify-content: center;
+width: 300px;
+}
+.container{
+background-color: rgb(98, 0, 255);
+}
+
+h1{
+text-align: center;
+color: aliceblue;
+}
+
+p{
+color: aliceblue;
+text-align: center;
+font-size: 30px;
+}
