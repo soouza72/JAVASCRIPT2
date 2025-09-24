@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+<body>
+  <img id="banner" src="" width="100%">
+
+  <script>
+    const banner = document.getElementById("banner");
+
+    function trocarBanner() {
+      if (window.innerWidth < 600) {
+        banner.src = "bannermobile.jpg";
+      } else {
+        banner.src = "bannerdesktop.jpg";
+      }
+    }
+
+    window.addEventListener("resize", trocarBanner);
+    trocarBanner();
+  </script>
+</body>
+</html>
