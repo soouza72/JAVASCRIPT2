@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pong - Canvas</title>
+  <style>
+    body { background: #111; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; color: #fff; flex-direction: column; }
+    canvas { background: #000; border: 2px solid #fff; display: block; }
+    #score { margin: 10px; font-size: 20px; }
+    button { margin: 5px; padding: 5px 10px; background: #222; color: #fff; border: 1px solid #555; cursor: pointer; }
+    button:hover { background: #333; }
+  </style>
+</head>
+<body>
+  <div id="score">0 : 0</div>
+  <canvas id="gameCanvas" width="800" height="500"></canvas>
+  <div>
+    <button id="toggleAI">AI: ON</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const WIDTH = canvas.width;
+  const HEIGHT = canvas.height;
+  const PADDLE_WIDTH = 10;
+  const PADDLE_HEIGHT = 80;
+  const PADDLE_SPEED = 6;
+  const BALL_SIZE = 10;
+  const BALL_SPEED = 5;
+
+  const state = {
+    left: { x: 20, y: (HEIGHT - PADDLE_HEIGHT) / 2, score: 0 },
+    right: { x: WIDTH - 30, y: (HEIGHT - PADDLE_HEIGHT) / 2, score: 0 },
+    ball: { x: WIDTH / 2, y: HEIGHT / 2, vx: BALL_SPEED, vy: 0 },
+    w: false, s: false, up: false, down: false, ai: true, paused: false
+  };
+
+  function resetBall(dir = 1) {
+    state.ball.x = WIDTH / 2;
+    state.ball.y = HEIGHT / 2;
+    state.ball.vx = BALL_SPEED * dir;
+    state.ball.vy = (Math.random() * 4) - 2;
+  }
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'w') state.w = true;
+    if (e.key === 's') state.s = true;
+    if (e.key === 'ArrowUp') state.up = true;
+    if (e.key === 'ArrowDown') state.down = true;
+    if (e.code === 'Space') state.paused = !state.paused;
+  });
+
+  window.addEventListener('keyup', e => {
+    if (e.key === 'w') state.w = false;
+    if (e.key === 's') state.s = false;
+    if (e.key === 'ArrowUp') state.up = false;
+    if (e.key === 'ArrowDown') state.down = false;
+  });
+
+  function aiMove() {
+    let center = state.right.y + PADDLE_HEIGHT / 2;
+    if (center < state.ball.y - 10) state.right.y += PADDLE_SPEED * 0.8;
+    else if (center > state.ball.y + 10) state.right.y -= PADDLE_SPEED * 0.8;
+  }
+
+  function update() {
+    if (state.paused) return;
+
+    if (state.w) state.left.y -= PADDLE_SPEED;
+    if (state.s) state.left.y += PADDLE_SPEED;
+
+    if (state.ai) aiMove();
+    else {
+      if (state.up) state.right.y -= PADDLE_SPEED;
+      if (state.down) state.right.y += PADDLE_SPEED;
+    }
+
+    state.left.y = Math.max(0, Math.min(HEIGHT - PADDLE_HEIGHT, state.left.y));
+    state.right.y = Math.max(0, Math.min(HEIGHT - PADDLE_HEIGHT, state.right.y));
+
+    state.ball.x += state.ball.vx;
+    state.ball.y += state.ball.vy;
+
+    if (state.ball.y <= 0 || state.ball.y >= HEIGHT - BALL_SIZE) state.ball.vy *= -1;
+
+    if (state.ball.x <= state.left.x + PADDLE_WIDTH && state.ball.y > state.left.y && state.ball.y < state.left.y + PADDLE_HEIGHT) {
+      state.ball.vx *= -1;
+      state.ball.x = state.left.x + PADDLE_WIDTH;
+    }
+
+    if (state.ball.x + BALL_SIZE >= state.right.x && state.ball.y > state.right.y && state.ball.y < state.right.y + PADDLE_HEIGHT) {
+      state.ball.vx *= -1;
+      state.ball.x = state.right.x - BALL_SIZE;
+    }
+
+    if (state.ball.x < 0) {
+      state.right.score++;
+      updateScore();
+      resetBall(1);
+    }
+
+    if (state.ball.x > WIDTH) {
+      state.left.score++;
+      updateScore();
+      resetBall(-1);
+    }
+  }
+
+  function updateScore() {
+    document.getElementById('score').innerText = `${state.left.score} : ${state.right.score}`;
+  }
+
+  function draw() {
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(WIDTH / 2 - 1, 0, 2, HEIGHT);
+    ctx.fillRect(state.left.x, state.left.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+    ctx.fillRect(state.right.x, state.right.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+    ctx.fillRect(state.ball.x, state.ball.y, BALL_SIZE, BALL_SIZE);
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  document.getElementById('toggleAI').onclick = () => {
+    state.ai = !state.ai;
+    document.getElementById('toggleAI').innerText = 'AI: ' + (state.ai ? 'ON' : 'OFF');
+  };
+
+  document.getElementById('resetBtn').onclick = () => {
+    state.left.score = 0;
+    state.right.score = 0;
+    updateScore();
+    resetBall(1);
+  };
+
+  resetBall(1);
+  loop();
+  </script>
+</body>
+</html>
